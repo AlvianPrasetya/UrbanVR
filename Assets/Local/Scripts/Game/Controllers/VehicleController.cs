@@ -2,13 +2,15 @@
 
 public class VehicleController : MonoBehaviour {
 
-	public float maxForwardSpeed;
 	public float maxAcceleration;
-	public float maxDeceleration;
-	public float maxAngularSpeed;
+	public float maxVelocity;
+	public float maxAvoidAcceleration;
+	public float lookAheadRadius;
+	public float lookAheadDistance;
+	public float waypointReachedDistance;
 
+	public Waypoint prevWaypoint;
 	public Waypoint nextWaypoint;
-	public Waypoint nextNextWaypoint;
 
 	private new Rigidbody rigidbody;
 
@@ -16,49 +18,67 @@ public class VehicleController : MonoBehaviour {
 		rigidbody = GetComponent<Rigidbody>();
 	}
 
-	/*void Update() {
-		float steerAngle = Navigate();
+	void Update() {
+		Steer();
+	}
 
-		Logger.Log(steerAngle.ToString());
+	private void Steer() {
+		Vector2 steeringAcceleration = Vector2.zero;
+		steeringAcceleration += FollowPath();
+		steeringAcceleration += AvoidCollision();
+		steeringAcceleration += Queue();
 
-		rigidbody.AddForce(
-			steerVector * Mathf.Lerp(maxAcceleration, 0.0f, Vector3.Dot(rigidbody.velocity, transform.forward) / maxForwardSpeed * steerAngle / 180.0f),
-			ForceMode.Acceleration);
+		steeringAcceleration = Vector2.ClampMagnitude(steeringAcceleration, maxAcceleration);
 
+		rigidbody.AddForce(Utils.Unflatten(steeringAcceleration), ForceMode.Acceleration);
 		
-	}*/
+		Quaternion currentRotation = Quaternion.LookRotation(transform.forward, Vector2.up);
+		Quaternion targetRotation = Quaternion.LookRotation(Utils.Unflatten(Utils.Flatten(rigidbody.velocity)), Vector2.up);
 
-	void FixedUpdate() {
-		Navigate();
+		transform.rotation = Quaternion.Slerp(currentRotation, targetRotation, 0.1f);
 	}
+	
+	private Vector2 FollowPath() {
+		Vector2 vehiclePosition = Utils.Flatten(transform.position);
+		Vector2 waypointPosition = Utils.Flatten(nextWaypoint.transform.position);
 
-	private Vector2 steerVector;
-	private Vector2 vectorToNextWaypoint;
-	private Vector2 forwardDirectionVector;
-
-	private void Navigate() {
-		Vector2 nextWaypointPositionVector = Utils.Flatten(nextWaypoint.transform.position);
-		Vector2 vehiclePositionVector = Utils.Flatten(transform.position);
-
-		Vector2 desiredVelocity = (nextWaypointPositionVector - vehiclePositionVector).normalized * maxForwardSpeed;
-		Vector2 steering = Vector2.ClampMagnitude(desiredVelocity - Utils.Flatten(rigidbody.velocity), maxAcceleration);
-
-		rigidbody.velocity = Vector3.ClampMagnitude(rigidbody.velocity + Utils.Unflatten(steering) * Time.fixedDeltaTime, maxForwardSpeed);
-
-		if (Vector2.Distance(Utils.Flatten(transform.position), Utils.Flatten(nextWaypoint.transform.position)) < 1.0f) {
-			nextWaypoint = nextNextWaypoint;
+		if (Vector2.SqrMagnitude(waypointPosition - vehiclePosition) < waypointReachedDistance * waypointReachedDistance) {
+			// Vehicle has arrived at the next waypoint, update next waypoint
+			foreach (Waypoint waypoint in nextWaypoint.neighbours) {
+				if (!waypoint.Equals(prevWaypoint)) {
+					prevWaypoint = nextWaypoint;
+					nextWaypoint = waypoint;
+					break;
+				}
+			}
 		}
+
+		return Seek(Utils.Flatten(nextWaypoint.transform.position));
 	}
 
-	void OnDrawGizmos() {
-		Gizmos.color = Color.green;
-		Gizmos.DrawLine(transform.position, transform.position + Utils.Unflatten(vectorToNextWaypoint));
+	private Vector2 AvoidCollision() {
+		Vector2 avoidAcceleration = Vector2.zero;
 
-		Gizmos.color = Color.cyan;
-		Gizmos.DrawLine(transform.position, transform.position + Utils.Unflatten(forwardDirectionVector * 20));
+		RaycastHit hitInfo;
+		if (Physics.SphereCast(transform.position, lookAheadRadius, transform.forward, out hitInfo, lookAheadDistance, Utils.Layer.VEHICLE | Utils.Layer.OBSTACLE)) {
+			Vector2 threatPosition = Utils.Flatten(hitInfo.transform.position);
+			Vector2 lookAheadPosition = Utils.Flatten(transform.position + transform.forward * lookAheadDistance);
 
-		Gizmos.color = Color.red;
-		Gizmos.DrawLine(transform.position, transform.position + Utils.Unflatten(steerVector * 20));
+			avoidAcceleration = (lookAheadPosition - threatPosition).normalized * maxAvoidAcceleration;
+		}
+
+		return avoidAcceleration;
+	}
+
+	private Vector2 Queue() {
+		return Vector2.zero;
+	}
+
+	private Vector2 Seek(Vector2 targetPosition) {
+		Vector2 desiredVelocity = (targetPosition - Utils.Flatten(transform.position)).normalized * maxVelocity;
+		Vector2 steeringAcceleration = Vector2.ClampMagnitude(desiredVelocity - Utils.Flatten(rigidbody.velocity), maxAcceleration);
+
+		return steeringAcceleration;
 	}
 
 }

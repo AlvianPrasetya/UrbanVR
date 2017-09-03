@@ -103,7 +103,6 @@ public class InteractController : MonoBehaviour {
 			Vector3 cameraEulerAngles = activeCamera.transform.eulerAngles;
 			float deltaXAngle = CalculateAngularDifference(cameraEulerAngles.x, lastCameraEulerAngles.x);
 			float deltaYAngle = CalculateAngularDifference(cameraEulerAngles.y, lastCameraEulerAngles.y);
-			float deltaZAngle = CalculateAngularDifference(cameraEulerAngles.z, lastCameraEulerAngles.z);
 
 			lastCameraEulerAngles = cameraEulerAngles;
 
