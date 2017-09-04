@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 public class Interactable : MonoBehaviour {
 
@@ -7,6 +8,18 @@ public class Interactable : MonoBehaviour {
 
 	private OnTriggerEnterCallback triggerEnterCallback;
 	private OnTriggerExitCallback triggerExitCallback;
+	
+	private Renderer[] renderers;
+	private List<Material> originalMaterials;
+
+	void Awake() {
+		renderers = GetComponentsInChildren<Renderer>();
+
+		originalMaterials = new List<Material>();
+		foreach (Renderer renderer in renderers) {
+			originalMaterials.Add(renderer.material);
+		}
+	}
 
 	void OnTriggerEnter(Collider other) {
 		if (triggerEnterCallback != null) {
@@ -54,6 +67,18 @@ public class Interactable : MonoBehaviour {
 
 	public void EndInteraction() {
 
+	}
+
+	public void Materialize() {
+		for (int i = 0; i < renderers.Length; i++) {
+			renderers[i].material = originalMaterials[i];
+		}
+	}
+
+	public void Dematerialize() {
+		foreach (Renderer renderer in renderers) {
+			renderer.material = null;
+		}
 	}
 
 }

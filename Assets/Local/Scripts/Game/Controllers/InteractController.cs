@@ -141,10 +141,18 @@ public class InteractController : MonoBehaviour {
 
 	private void OnInteractableTriggerEnter(Collider other) {
 		interactableOverlaps.Add(other);
+
+		if (interactableOverlaps.Count == 1) {
+			draggedInteractable.Dematerialize();
+		}
 	}
 
 	private void OnInteractableTriggerExit(Collider other) {
 		interactableOverlaps.Remove(other);
+
+		if (interactableOverlaps.Count == 0) {
+			draggedInteractable.Materialize();
+		}
 	}
 
 	private float CalculateAngularDifference(float x, float y) {
