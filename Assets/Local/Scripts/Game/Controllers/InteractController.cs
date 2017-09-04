@@ -55,7 +55,7 @@ public class InteractController : MonoBehaviour {
 	private void InputDestroy() {
 		if (Input.GetMouseButtonDown(Utils.Input.MOUSE_BUTTON_RIGHT)) {
 			RaycastHit hitInfo;
-			if (Physics.Raycast(activeCamera.transform.position, activeCamera.transform.forward, out hitInfo, Mathf.Infinity, Utils.Layer.OBSTACLE)) {
+			if (Physics.Raycast(activeCamera.transform.position, activeCamera.transform.forward, out hitInfo, Mathf.Infinity, Utils.Layer.INTERACTABLE)) {
 				Interactable hitInteractable = hitInfo.transform.GetComponentInParent<Interactable>();
 				if (hitInteractable != null) {
 					Destroy(hitInteractable.gameObject);
@@ -83,7 +83,7 @@ public class InteractController : MonoBehaviour {
 		}
 
 		RaycastHit hitInfo;
-		if (Physics.Raycast(activeCamera.transform.position, activeCamera.transform.forward, out hitInfo, Mathf.Infinity, Utils.Layer.OBSTACLE)) {
+		if (Physics.Raycast(activeCamera.transform.position, activeCamera.transform.forward, out hitInfo, Mathf.Infinity, Utils.Layer.INTERACTABLE)) {
 			Interactable hitInteractable = hitInfo.transform.GetComponentInParent<Interactable>();
 			if (hitInteractable != null) {
 				draggedInteractable = hitInteractable;

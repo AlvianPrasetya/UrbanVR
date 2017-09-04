@@ -29,12 +29,14 @@ public class Utils : MonoBehaviour {
 
 	public class Tag {
 		public static readonly string TERRAIN = "Terrain";
+		public static readonly string INTERACTABLE = "Interactable";
 		public static readonly string OBSTACLE = "Obstacle";
 		public static readonly string VEHICLE = "Vehicle";
 	}
 
 	public class Layer {
 		public static readonly int TERRAIN = 1 << LayerMask.NameToLayer("Terrain");
+		public static readonly int INTERACTABLE = 1 << LayerMask.NameToLayer("Interactable");
 		public static readonly int OBSTACLE = 1 << LayerMask.NameToLayer("Obstacle");
 		public static readonly int VEHICLE = 1 << LayerMask.NameToLayer("Vehicle");
 	}

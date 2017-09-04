@@ -1,12 +1,20 @@
 ﻿using UnityEngine;
+using System.Linq;
+using System.Collections;
 
 public class VehicleController : MonoBehaviour {
 
 	public float maxAcceleration;
+	public float maxDeceleration;
 	public float maxVelocity;
 	public float maxAvoidAcceleration;
-	public float lookAheadRadius;
+
 	public float lookAheadDistance;
+	public float lookAheadRadius;
+
+	public float queueAheadDistance;
+	public float queueAheadRadius;
+
 	public float waypointReachedDistance;
 
 	public Waypoint prevWaypoint;
@@ -26,7 +34,7 @@ public class VehicleController : MonoBehaviour {
 		Vector2 steeringAcceleration = Vector2.zero;
 		steeringAcceleration += FollowPath();
 		steeringAcceleration += AvoidCollision();
-		steeringAcceleration += Queue();
+		Queue();
 
 		steeringAcceleration = Vector2.ClampMagnitude(steeringAcceleration, maxAcceleration);
 
@@ -35,7 +43,7 @@ public class VehicleController : MonoBehaviour {
 		Quaternion currentRotation = Quaternion.LookRotation(transform.forward, Vector2.up);
 		Quaternion targetRotation = Quaternion.LookRotation(Utils.Unflatten(Utils.Flatten(rigidbody.velocity)), Vector2.up);
 
-		transform.rotation = Quaternion.Slerp(currentRotation, targetRotation, 0.1f);
+		rigidbody.MoveRotation(Quaternion.Slerp(currentRotation, targetRotation, 0.1f));
 	}
 	
 	private Vector2 FollowPath() {
@@ -71,6 +79,31 @@ public class VehicleController : MonoBehaviour {
 	}
 
 	private Vector2 Queue() {
+		Collider[] colliders = Physics.OverlapSphere(transform.position + transform.forward * queueAheadDistance, queueAheadRadius, Utils.Layer.VEHICLE)
+			.OrderBy(h => Vector2.SqrMagnitude(Utils.Flatten(h.transform.position) - Utils.Flatten(transform.position))).ToArray();
+
+		Vector2 selfPosition = Utils.Flatten(transform.position);
+		Vector2 selfDirection = Utils.Flatten(rigidbody.velocity).normalized;
+		foreach (Collider collider in colliders) {
+			if (collider.Equals(GetComponent<Collider>())) {
+				continue;
+			}
+
+			Vector2 threatPosition = Utils.Flatten(collider.transform.position);
+			Vector2 threatDirection = Utils.Flatten(collider.GetComponent<VehicleController>().rigidbody.velocity).normalized;
+
+			float det = threatDirection.x * selfDirection.y - selfDirection.x * threatDirection.y;
+			float selfDistanceToIntersection = 1.0f / det * ((selfPosition.x - threatPosition.x) * threatDirection.y - (selfPosition.y - threatPosition.y) * threatDirection.x);
+			float threatDistanceToIntersection = 1.0f / det * ((selfPosition.x - threatPosition.x) * selfDirection.y - (selfPosition.y - threatPosition.y) * selfDirection.x);
+
+			if (threatDistanceToIntersection > 0.0f && selfDistanceToIntersection > 0.0f) {
+				if (selfDistanceToIntersection > threatDistanceToIntersection) {
+					// Slow down
+					return -rigidbody.velocity.normalized * Mathf.Lerp(0, maxDeceleration, rigidbody.velocity.magnitude / maxVelocity);
+				}
+			}
+		}
+
 		return Vector2.zero;
 	}
 
