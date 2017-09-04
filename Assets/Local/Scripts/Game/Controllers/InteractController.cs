@@ -45,7 +45,7 @@ public class InteractController : MonoBehaviour {
 		for (int i = 1; i <= spawnables.Length; i++) {
 			if (Input.GetKeyDown(i.ToString())) {
 				RaycastHit hitInfo;
-				if (Physics.Raycast(activeCamera.transform.position, activeCamera.transform.forward, out hitInfo, Mathf.Infinity, Utils.Layer.TERRAIN | Utils.Layer.OBSTACLE)) {
+				if (Physics.Raycast(activeCamera.transform.position, activeCamera.transform.forward, out hitInfo, Mathf.Infinity, Utils.Layer.TERRAIN)) {
 					Instantiate(spawnables[i - 1], hitInfo.point, Quaternion.identity);
 				}
 			}
