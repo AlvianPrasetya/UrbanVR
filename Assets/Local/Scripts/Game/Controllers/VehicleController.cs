@@ -68,15 +68,18 @@ public class VehicleController : MonoBehaviour {
 		Vector2 avoidAcceleration = Vector2.zero;
 
 		RaycastHit hitInfo;
-		if (Physics.SphereCast(transform.position + transform.forward * (transform.localScale.z / 2.0f + lookAheadRadius + 0.1f), lookAheadRadius, transform.forward, out hitInfo, lookAheadDistance, Utils.Layer.VEHICLE | Utils.Layer.OBSTACLE)) {
+		if (Physics.SphereCast(transform.position, lookAheadRadius, transform.forward, out hitInfo, lookAheadDistance, Utils.Layer.VEHICLE | Utils.Layer.OBSTACLE | Utils.Layer.INTERACTABLE)) {
+			Vector2 vehiclePosition = Utils.Flatten(transform.position);
+			Vector2 vehicleDirection = Utils.Flatten(transform.forward).normalized;
 			Vector2 threatPosition = Utils.Flatten(hitInfo.transform.position);
-			Vector2 lookAheadPosition = Utils.Flatten(transform.position + transform.forward * lookAheadDistance);
+			Vector2 threatDirection = (threatPosition - vehiclePosition).normalized;
 
-			Vector2 avoidDirection = (lookAheadPosition - threatPosition).normalized;
-			if (Vector2.Angle(avoidDirection, Utils.Flatten(transform.forward)) < 45.0f || Vector2.Angle(avoidDirection, Utils.Flatten(-transform.forward)) < 45.0f) {
-				avoidAcceleration = -transform.right * Mathf.Lerp(maxAvoidAcceleration, 0.0f, hitInfo.distance / lookAheadDistance);
+			float direction = Utils.Direction(vehicleDirection, threatDirection);
+			// Check whether threat is to the left or right of the forward direction
+			if (direction <= 0.0f) {
+				return Utils.Flatten(-transform.right).normalized;
 			} else {
-				avoidAcceleration = avoidDirection * Mathf.Lerp(maxAvoidAcceleration, 0.0f, hitInfo.distance / lookAheadDistance);
+				return Utils.Flatten(transform.right).normalized;
 			}
 		}
 

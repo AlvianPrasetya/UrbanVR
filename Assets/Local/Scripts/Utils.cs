@@ -88,6 +88,17 @@ public class Utils : MonoBehaviour {
 		return new Vector3(vector.x, y, vector.y);
 	}
 
+	public static int Direction(Vector2 forwardDirection, Vector2 targetDirection) {
+		float crossMagnitude = forwardDirection.x * targetDirection.y - forwardDirection.y * targetDirection.x;
+		if (crossMagnitude == 0.0f) {
+			return 0; // Forward direction
+		} else if (crossMagnitude < 0.0f) {
+			return -1; // Left direction
+		} else {
+			return 1; // Right direction
+		}
+	}
+
 	public static IEnumerator TransformLerpPosition(Transform targetTransform, Vector3 startPosition,
 		Vector3 endPosition, float lerpTime) {
 		float time = 0.0f;
