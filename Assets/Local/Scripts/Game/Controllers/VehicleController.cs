@@ -77,9 +77,9 @@ public class VehicleController : MonoBehaviour {
 			float direction = Utils.Direction(vehicleDirection, threatDirection);
 			// Check whether threat is to the left or right of the forward direction
 			if (direction <= 0.0f) {
-				return Utils.Flatten(-transform.right).normalized;
+				return Utils.Flatten(-transform.right).normalized * Mathf.Lerp(maxAvoidAcceleration, 0.0f, hitInfo.distance / lookAheadDistance);
 			} else {
-				return Utils.Flatten(transform.right).normalized;
+				return Utils.Flatten(transform.right).normalized * Mathf.Lerp(maxAvoidAcceleration, 0.0f, hitInfo.distance / lookAheadDistance);
 			}
 		}
 
