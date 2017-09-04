@@ -72,9 +72,9 @@ public class PlayerController : Photon.MonoBehaviour {
 			} else {
 				viewMode = CameraManager.ViewMode.FIRST_PERSON;
 			}
-		}
 
-		toggledViewModeCallback(viewMode, photonView.isMine);
+			toggledViewModeCallback(viewMode, photonView.isMine);
+		}
 	}
 
 }

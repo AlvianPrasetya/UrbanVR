@@ -120,7 +120,7 @@ public class InteractController : MonoBehaviour {
 	}
 
 	private void TryDrop() {
-		if (interactableOverlaps.Count == 0) {
+		if (draggedInteractable != null && interactableOverlaps.Count == 0) {
 			// Only allow interaction to end if interactable does not overlap with other object(s)
 			draggedInteractable.EndInteraction();
 
