@@ -9,23 +9,26 @@ public class DayNightManager : MonoBehaviour {
 	public enum TimeMode {
 		SECOND_TO_SECOND, SECOND_TO_MINUTE, SECOND_TO_HOUR
 	}
-	
-	public Transform sun;
+
+	public Transform sunMoonPivot;
+
+	public Light sun;
 	public float sunSize;
 
-	public Transform moon;
+	public Light moon;
 	public float moonSize;
 	
 	// The initial time of day in hours since 00:00
 	public float initialTime;
 
+	public TimeMode timeMode;
+
 	// Respectively describes the maximum intensity of the sun/moon lights
 	public float maxSunLightIntensity;
 	public float maxMoonLightIntensity;
 
-	// The time (in hours since 00:00) in which the sun/moon reaches their peaks
+	// The time (in hours since 00:00) in which the sun reaches its peak
 	public float peakSunIntensityTime;
-	public float peakMoonIntensityTime;
 
 	public float sunshineDuration;
 	public float moonshineDuration;
@@ -33,68 +36,75 @@ public class DayNightManager : MonoBehaviour {
 	public float peakDayExposure;
 	public float peakNightExposure;
 
-	private Light sunLight;
-	private Light moonLight;
+	public float peakDayAtmosphereThickness;
+	public float peakNightAtmosphereThickness;
+
+	// The time (in hours since 00:00) in which the moon reaches its peak (always peakSunIntensityTime + 12h)
+	private float peakMoonIntensityTime;
 
 	// The current time of day in hours since 00:00
 	private float timeOfDay;
 
-	private TimeMode timeMode;
-
 	void Awake() {
-		sunLight = sun.GetComponent<Light>();
-		moonLight = moon.GetComponent<Light>();
+		peakMoonIntensityTime = AddHours(peakSunIntensityTime, 12.0f);
 
 		timeOfDay = initialTime;
-		timeMode = TimeMode.SECOND_TO_SECOND;
 	}
 
 	void Update() {
-		float hoursPassedSinceLastUpdate = UpdateTimeOfDay();
-		UpdateSunPosition(hoursPassedSinceLastUpdate);
-		UpdateMoonPosition(hoursPassedSinceLastUpdate);
+		//float hoursPassedSinceLastUpdate = UpdateTimeOfDay();
+		UpdateTimeOfDay();
+		UpdateLightSource();
+		UpdateSunMoonRotation();
 
 		InputToggleTimeMode();
 	}
 
-	/**
-	 * This method updates the time of day and returns the delta since the last 
-	 * time this function is called.
-	 */
-	private float UpdateTimeOfDay() {
-		float hoursPassedSinceLastUpdate = CalculateHoursPassedSinceLastUpdate();
-		timeOfDay += hoursPassedSinceLastUpdate;
-		if (timeOfDay >= 24.0f) {
-			timeOfDay -= 24.0f;
+	private void UpdateTimeOfDay() {
+		float simulatedTimeRatio;
+		switch (timeMode) {
+			case TimeMode.SECOND_TO_SECOND:
+				simulatedTimeRatio = 1;
+				break;
+			case TimeMode.SECOND_TO_MINUTE:
+				simulatedTimeRatio = 60;
+				break;
+			case TimeMode.SECOND_TO_HOUR:
+				simulatedTimeRatio = 3600;
+				break;
+			default:
+				simulatedTimeRatio = 1;
+				break;
 		}
 
-		float hoursFromSunPeak = CalculateTimeDifference(timeOfDay, peakSunIntensityTime);
-		float hoursFromMoonPeak = CalculateTimeDifference(timeOfDay, peakMoonIntensityTime);
+		timeOfDay = AddHours(timeOfDay, simulatedTimeRatio * Time.deltaTime * Utils.Value.HOURS_IN_SECOND);
+	}
+
+	private void UpdateLightSource() {
+		float hoursFromSunPeak = CalculateHoursBetween(timeOfDay, peakSunIntensityTime);
+		float hoursFromMoonPeak = CalculateHoursBetween(timeOfDay, peakMoonIntensityTime);
+
 		if (hoursFromSunPeak < hoursFromMoonPeak) {
-			RenderSettings.sun = sunLight;
+			RenderSettings.sun = sun;
 			RenderSettings.skybox.SetFloat("_SunSize", sunSize);
 		} else {
-			RenderSettings.sun = moonLight;
+			RenderSettings.sun = moon;
 			RenderSettings.skybox.SetFloat("_SunSize", moonSize);
 		}
 
 		RenderSettings.skybox.SetFloat("_Exposure", Mathf.Lerp(peakDayExposure, peakNightExposure, hoursFromSunPeak / 12.0f));
+		RenderSettings.skybox.SetFloat("_AtmosphereThickness", Mathf.Lerp(peakDayAtmosphereThickness, peakNightAtmosphereThickness, hoursFromSunPeak / 12.0f));
 
 		float relativeSunIntensity = 1.0f - Mathf.Pow(hoursFromSunPeak / sunshineDuration, 2.0f);
-		sunLight.intensity = relativeSunIntensity * maxSunLightIntensity;
+		sun.intensity = relativeSunIntensity * maxSunLightIntensity;
 
 		float relativeMoonIntensity = 1.0f - Mathf.Pow(hoursFromMoonPeak / moonshineDuration, 2.0f);
-		moonLight.intensity = relativeMoonIntensity * maxMoonLightIntensity;
-
-		return hoursPassedSinceLastUpdate;
+		moon.intensity = relativeMoonIntensity * maxMoonLightIntensity;
 	}
 
-	private void UpdateSunPosition(float deltaTime) {
-		sun.RotateAround(Vector3.zero, Vector3.right, 360.0f / 24.0f * deltaTime);
-	}
-
-	private void UpdateMoonPosition(float deltaTime) {
-		moon.RotateAround(Vector3.zero, Vector3.right, 360.0f / 24.0f * deltaTime);
+	private void UpdateSunMoonRotation() {
+		float zAngle = timeOfDay * 15.0f - 90.0f;
+		sunMoonPivot.rotation = Quaternion.Euler(sunMoonPivot.eulerAngles.x, sunMoonPivot.eulerAngles.y, zAngle);
 	}
 
 	private void InputToggleTimeMode() {
@@ -115,27 +125,7 @@ public class DayNightManager : MonoBehaviour {
 		}
 	}
 
-	private float CalculateHoursPassedSinceLastUpdate() {
-		float simulatedTimeRatio;
-		switch (timeMode) {
-			case TimeMode.SECOND_TO_SECOND:
-				simulatedTimeRatio = 1;
-				break;
-			case TimeMode.SECOND_TO_MINUTE:
-				simulatedTimeRatio = 60;
-				break;
-			case TimeMode.SECOND_TO_HOUR:
-				simulatedTimeRatio = 3600;
-				break;
-			default:
-				simulatedTimeRatio = 1;
-				break;
-		}
-
-		return simulatedTimeRatio * Time.deltaTime * Utils.Value.HOURS_IN_SECOND;
-	}
-
-	private float CalculateTimeDifference(float timeA, float timeB) {
+	private float CalculateHoursBetween(float timeA, float timeB) {
 		if (timeA > timeB) {
 			float temp = timeA;
 			timeA = timeB;
@@ -143,6 +133,23 @@ public class DayNightManager : MonoBehaviour {
 		}
 
 		return Mathf.Min(timeB - timeA, 24.0f + timeA - timeB);
+	}
+
+	private float CalculateHoursFromTo(float from, float to) {
+		if (to > from) {
+			return to - from;
+		} else {
+			return to + 24.0f - from;
+		}
+	}
+
+	private float AddHours(float time, float hoursToAdd) {
+		time += hoursToAdd;
+		if (time >= 24.0f) {
+			time -= 24.0f;
+		}
+
+		return time;
 	}
 
 }
