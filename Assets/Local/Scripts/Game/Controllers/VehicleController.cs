@@ -26,7 +26,7 @@ public class VehicleController : MonoBehaviour {
 		rigidbody = GetComponent<Rigidbody>();
 	}
 
-	void Update() {
+	void FixedUpdate() {
 		Steer();
 	}
 
