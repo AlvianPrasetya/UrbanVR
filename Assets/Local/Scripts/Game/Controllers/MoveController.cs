@@ -6,6 +6,8 @@
  */
 public class MoveController : Photon.MonoBehaviour {
 
+	public Transform playerCamera;
+
 	public float moveSpeed;
 
 	private new Rigidbody rigidbody;
@@ -31,8 +33,8 @@ public class MoveController : Photon.MonoBehaviour {
 	}
 
 	private void InputMove() {
-		moveVector = transform.forward * Input.GetAxis(Utils.Input.VERTICAL)
-			+ transform.right * Input.GetAxis(Utils.Input.HORIZONTAL);
+		moveVector = playerCamera.transform.forward * Input.GetAxis(Utils.Input.VERTICAL)
+			+ playerCamera.transform.right * Input.GetAxis(Utils.Input.HORIZONTAL);
 	}
 
 	private void Move() {
