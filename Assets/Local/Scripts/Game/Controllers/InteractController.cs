@@ -5,13 +5,12 @@ using System.Collections.Generic;
 public class InteractController : MonoBehaviour {
 
 	public Interactable[] spawnables;
+	public Transform playerCamera;
 
 	public float translateSpeedMultiplier;
 	public float rotateSpeedMultiplier;
 
 	private Interactable draggedInteractable;
-
-	private Camera activeCamera;
 
 	private Vector3 lastCameraEulerAngles;
 	private Vector3 lastPosition;
@@ -25,8 +24,6 @@ public class InteractController : MonoBehaviour {
 	}
 
 	void Update() {
-		UpdateCamera();
-
 		InputSpawn();
 		InputDestroy();
 
@@ -37,15 +34,11 @@ public class InteractController : MonoBehaviour {
 		Pan();
 	}
 
-	private void UpdateCamera() {
-		activeCamera = GameManagerBase.Instance.cameraManager.GetActiveCamera();
-	}
-
 	private void InputSpawn() {
 		for (int i = 1; i <= spawnables.Length; i++) {
 			if (Input.GetKeyDown(i.ToString())) {
 				RaycastHit hitInfo;
-				if (Physics.Raycast(activeCamera.transform.position, activeCamera.transform.forward, out hitInfo, Mathf.Infinity, Utils.Layer.TERRAIN)) {
+				if (Physics.Raycast(playerCamera.position, playerCamera.forward, out hitInfo, Mathf.Infinity, Utils.Layer.TERRAIN)) {
 					Instantiate(spawnables[i - 1], hitInfo.point, Quaternion.identity);
 				}
 			}
@@ -55,7 +48,7 @@ public class InteractController : MonoBehaviour {
 	private void InputDestroy() {
 		if (Input.GetMouseButtonDown(Utils.Input.MOUSE_BUTTON_RIGHT)) {
 			RaycastHit hitInfo;
-			if (Physics.Raycast(activeCamera.transform.position, activeCamera.transform.forward, out hitInfo, Mathf.Infinity, Utils.Layer.INTERACTABLE)) {
+			if (Physics.Raycast(playerCamera.position, playerCamera.forward, out hitInfo, Mathf.Infinity, Utils.Layer.INTERACTABLE)) {
 				Interactable hitInteractable = hitInfo.transform.GetComponentInParent<Interactable>();
 				if (hitInteractable != null) {
 					Destroy(hitInteractable.gameObject);
@@ -83,11 +76,11 @@ public class InteractController : MonoBehaviour {
 		}
 
 		RaycastHit hitInfo;
-		if (Physics.Raycast(activeCamera.transform.position, activeCamera.transform.forward, out hitInfo, Mathf.Infinity, Utils.Layer.INTERACTABLE)) {
+		if (Physics.Raycast(playerCamera.position, playerCamera.forward, out hitInfo, Mathf.Infinity, Utils.Layer.INTERACTABLE)) {
 			Interactable hitInteractable = hitInfo.transform.GetComponentInParent<Interactable>();
 			if (hitInteractable != null) {
 				draggedInteractable = hitInteractable;
-				lastCameraEulerAngles = activeCamera.transform.eulerAngles;
+				lastCameraEulerAngles = playerCamera.eulerAngles;
 				lastPosition = transform.position;
 
 				draggedInteractable.AddTriggerEnterCallback(OnInteractableTriggerEnter);
@@ -100,14 +93,14 @@ public class InteractController : MonoBehaviour {
 
 	private void Drag() {
 		if (draggedInteractable != null) {
-			Vector3 cameraEulerAngles = activeCamera.transform.eulerAngles;
+			Vector3 cameraEulerAngles = playerCamera.eulerAngles;
 			float deltaXAngle = CalculateAngularDifference(cameraEulerAngles.x, lastCameraEulerAngles.x);
 			float deltaYAngle = CalculateAngularDifference(cameraEulerAngles.y, lastCameraEulerAngles.y);
 
 			lastCameraEulerAngles = cameraEulerAngles;
 
 			Vector2 draggedInteractablePosition = Utils.Flatten(draggedInteractable.transform.position);
-			Vector2 translateDirection = (Utils.Flatten(draggedInteractable.transform.position - activeCamera.transform.position)).normalized;
+			Vector2 translateDirection = (Utils.Flatten(draggedInteractable.transform.position - playerCamera.position)).normalized;
 			Vector2 draggedInteractableTranslatedPosition = draggedInteractablePosition + translateDirection * -deltaXAngle * translateSpeedMultiplier;
 
 			RaycastHit hitInfo;
@@ -115,7 +108,7 @@ public class InteractController : MonoBehaviour {
 				draggedInteractable.transform.position = Utils.Unflatten(draggedInteractableTranslatedPosition, hitInfo.point.y);
 			}
 			
-			draggedInteractable.transform.RotateAround(activeCamera.transform.position * rotateSpeedMultiplier, Vector3.up, deltaYAngle);
+			draggedInteractable.transform.RotateAround(playerCamera.position * rotateSpeedMultiplier, Vector3.up, deltaYAngle);
 		}
 	}
 
