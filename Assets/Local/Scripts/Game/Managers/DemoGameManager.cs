@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.VR;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,6 +13,8 @@ public class DemoGameManager : GameManagerBase {
 
 	protected override void Awake() {
 		base.Awake();
+		
+		InputTracking.disablePositionalTracking = true;
 
 		standings = new Dictionary<PhotonPlayer, int>();
 	}

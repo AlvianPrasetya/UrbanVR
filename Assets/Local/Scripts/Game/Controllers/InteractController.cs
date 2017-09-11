@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
-using System.Linq;
 using System.Collections.Generic;
 
 public class InteractController : MonoBehaviour {
 
 	public Interactable[] spawnables;
 	public Transform playerCamera;
+	public Transform pointer;
 
 	public float translateSpeedMultiplier;
 	public float rotateSpeedMultiplier;
@@ -32,6 +32,8 @@ public class InteractController : MonoBehaviour {
 		InputDrop();
 
 		Pan();
+
+		UpdatePointerPosition();
 	}
 
 	private void InputSpawn() {
@@ -130,6 +132,22 @@ public class InteractController : MonoBehaviour {
 			draggedInteractable.transform.position += Utils.Unflatten(deltaPosition);
 			lastPosition = transform.position;
 		}
+	}
+
+	private void UpdatePointerPosition() {
+		RaycastHit hitInfo;
+		if (Physics.Raycast(playerCamera.position, playerCamera.forward, out hitInfo, Mathf.Infinity)) {
+			pointer.position = playerCamera.position + playerCamera.forward * hitInfo.distance;
+			pointer.localScale = new Vector3(
+				hitInfo.distance / 2.0f * 0.05f,
+				hitInfo.distance / 2.0f * 0.05f,
+				hitInfo.distance / 2.0f * 0.05f);
+		} else {
+			pointer.position = playerCamera.position + playerCamera.forward * 2.0f;
+			pointer.localScale = new Vector3(0.05f, 0.05f, 0.05f);
+		}
+
+		pointer.LookAt(playerCamera.position);
 	}
 
 	private void OnInteractableTriggerEnter(Collider other) {
