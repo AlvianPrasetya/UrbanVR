@@ -61,6 +61,10 @@ public class Utils : MonoBehaviour {
 		};
 	}
 
+	public class Axis {
+		public static readonly string SCROLL_WHEEL = "Mouse ScrollWheel";
+	}
+
 	public class Physics {
 		// Gravitational constant (big G)
 		public static readonly float G = 6.754e-11f;

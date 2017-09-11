@@ -52,7 +52,6 @@ public class DayNightManager : MonoBehaviour {
 	}
 
 	void Update() {
-		//float hoursPassedSinceLastUpdate = UpdateTimeOfDay();
 		UpdateTimeOfDay();
 		UpdateLightSource();
 		UpdateSunMoonRotation();

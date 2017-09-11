@@ -11,13 +11,13 @@ public class MoveController : Photon.MonoBehaviour {
 	public float moveSpeed;
 
 	private new Rigidbody rigidbody;
-
-	private Vector3 moveVector;
+	
+	private int throttle;
 
 	void Awake() {
 		rigidbody = GetComponent<Rigidbody>();
 
-		moveVector = Vector3.zero;
+		throttle = 0;
 	}
 	
 	void Update() {
@@ -33,13 +33,16 @@ public class MoveController : Photon.MonoBehaviour {
 	}
 
 	private void InputMove() {
-		moveVector = playerCamera.transform.forward * Input.GetAxis(Utils.Input.VERTICAL)
-			+ playerCamera.transform.right * Input.GetAxis(Utils.Input.HORIZONTAL);
+		float scroll = Input.GetAxis(Utils.Axis.SCROLL_WHEEL);
+		if (scroll > 0.0f) {
+			throttle = Mathf.Clamp(throttle + 1, -1, 1);
+		} else if (scroll < 0.0f) {
+			throttle = Mathf.Clamp(throttle - 1, -1, 1);
+		}
 	}
 
 	private void Move() {
-		Vector3 moveVelocity = Vector3.ClampMagnitude(moveVector * moveSpeed, moveSpeed);
-		rigidbody.MovePosition(transform.position + moveVelocity * Time.fixedDeltaTime);
+		rigidbody.MovePosition(transform.position + throttle * playerCamera.transform.forward * moveSpeed * Time.fixedDeltaTime);
 	}
 
 }
