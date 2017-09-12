@@ -73,8 +73,17 @@ public class VehicleController : MonoBehaviour {
 			Vector2 vehicleDirection = Utils.Flatten(transform.forward).normalized;
 			Vector2 threatPosition = Utils.Flatten(hitInfo.transform.position);
 			Vector2 threatDirection = (threatPosition - vehiclePosition).normalized;
+			
+			Vector2 counterVehicleDirection = Utils.Flatten(hitInfo.transform.forward).normalized;
+			Vector2 counterThreatDirection = (vehiclePosition - threatPosition).normalized;
 
 			float direction = Utils.Direction(vehicleDirection, threatDirection);
+			float counterDirection = Utils.Direction(counterVehicleDirection, counterThreatDirection);
+
+			if (Mathf.Sign(direction) != Mathf.Sign(counterDirection)) {
+				return Utils.Flatten(-transform.right).normalized * Mathf.Lerp(maxAvoidAcceleration, 0.0f, hitInfo.distance / lookAheadDistance);
+			}
+
 			// Check whether threat is to the left or right of the forward direction
 			if (direction <= 0.0f) {
 				return Utils.Flatten(-transform.right).normalized * Mathf.Lerp(maxAvoidAcceleration, 0.0f, hitInfo.distance / lookAheadDistance);
