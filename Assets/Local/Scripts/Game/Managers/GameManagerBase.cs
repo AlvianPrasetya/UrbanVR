@@ -24,6 +24,8 @@ public abstract class GameManagerBase : Photon.PunBehaviour {
 	public AttractorManager attractorManager;
 	public ObjectPoolManager objectPoolManager;
 	public CameraManager cameraManager;
+	public DayNightManager dayNightManager;
+	public TrafficManager trafficManager;
 
 	public int delayToStartGameCountdown;
 	public int startGameCountdown;

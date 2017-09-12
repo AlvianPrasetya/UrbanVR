@@ -59,6 +59,12 @@ public class DayNightManager : MonoBehaviour {
 		InputToggleTimeMode();
 	}
 
+	public float TimeOfDay {
+		get {
+			return timeOfDay;
+		}
+	}
+
 	private void UpdateTimeOfDay() {
 		float simulatedTimeRatio;
 		switch (timeMode) {
