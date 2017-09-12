@@ -137,14 +137,18 @@ public class InteractController : MonoBehaviour {
 	private void UpdatePointerPosition() {
 		RaycastHit hitInfo;
 		if (Physics.Raycast(playerCamera.position, playerCamera.forward, out hitInfo, Mathf.Infinity)) {
-			pointer.position = playerCamera.position + playerCamera.forward * hitInfo.distance;
+			pointer.position = playerCamera.position + playerCamera.forward * hitInfo.distance * 0.9f;
 			pointer.localScale = new Vector3(
-				hitInfo.distance / 2.0f * 0.05f,
-				hitInfo.distance / 2.0f * 0.05f,
-				hitInfo.distance / 2.0f * 0.05f);
+				hitInfo.distance * 0.01f,
+				hitInfo.distance * 0.01f,
+				hitInfo.distance * 0.01f);
 		} else {
-			pointer.position = playerCamera.position + playerCamera.forward * 2.0f;
-			pointer.localScale = new Vector3(0.05f, 0.05f, 0.05f);
+			float farClipDistance = playerCamera.GetComponent<Camera>().farClipPlane;
+			pointer.position = playerCamera.position + playerCamera.forward * farClipDistance * 0.9f;
+			pointer.localScale = new Vector3(
+				farClipDistance * 0.01f,
+				farClipDistance * 0.01f,
+				farClipDistance * 0.01f);
 		}
 
 		pointer.LookAt(playerCamera.position);
