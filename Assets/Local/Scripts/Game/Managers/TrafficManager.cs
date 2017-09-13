@@ -23,8 +23,35 @@ public class TrafficManager : MonoBehaviour {
 
 	private void InputToggleSimulation() {
 		if (Input.GetKeyDown(KeyCode.L)) {
-			ToggleSimulation();
+			AddVehicle();
+			//ToggleSimulation();
 		}
+	}
+
+	private void AddVehicle() {
+		Random.InitState(System.DateTime.Now.Millisecond);
+		Waypoint sourceWaypoint = null;
+		Waypoint targetWaypoint = null;
+		Vector3 spawnPosition = Vector3.zero;
+		Quaternion spawnRotation = Quaternion.identity;
+
+		int sourceWaypointId = Random.Range(0, waypoints.Length);
+		int targetWaypointId = Random.Range(0, waypoints[sourceWaypointId].neighbours.Length);
+
+		sourceWaypoint = waypoints[Random.Range(0, waypoints.Length)];
+		targetWaypoint = sourceWaypoint.neighbours[Random.Range(0, sourceWaypoint.neighbours.Length)];
+
+		spawnPosition = sourceWaypoint.transform.position
+			+ (targetWaypoint.transform.position - sourceWaypoint.transform.position) * Random.Range(0.2f, 0.8f);
+		spawnRotation = Quaternion.LookRotation(
+			(targetWaypoint.transform.position - sourceWaypoint.transform.position).normalized,
+			Vector3.up);
+
+		VehicleController vehicle = Instantiate(vehiclePrefab, spawnPosition, spawnRotation);
+		vehicle.prevWaypoint = sourceWaypoint;
+		vehicle.nextWaypoint = targetWaypoint;
+
+		spawnedVehicles.Add(vehicle);
 	}
 
 	private void ToggleSimulation() {
