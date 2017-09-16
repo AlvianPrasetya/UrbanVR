@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class PlayerController : Photon.MonoBehaviour {
 
+	public AssistantRobotController assistantRobot;
+
 	public delegate void OnPlayerSpawnedCallback(GameObject playerEntity, bool isLocalInstance);
 	public delegate void OnToggledViewModeCallback(CameraManager.ViewMode viewMode, bool isLocalInstance);
 
@@ -27,6 +29,9 @@ public class PlayerController : Photon.MonoBehaviour {
 		if (playerSpawnedCallback != null) {
 			playerSpawnedCallback(gameObject, photonView.isMine);
 		}
+
+		// Initialize assistant robot for player-following behaviour
+		assistantRobot.Initialize(transform);
 	}
 
 	private void Update() {

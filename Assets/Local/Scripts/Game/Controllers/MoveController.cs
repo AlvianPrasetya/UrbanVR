@@ -42,7 +42,8 @@ public class MoveController : Photon.MonoBehaviour {
 	}
 
 	private void Move() {
-		rigidbody.MovePosition(transform.position + throttle * playerCamera.transform.forward * moveSpeed * Time.fixedDeltaTime);
+		Vector3 moveDirection = Utils.Unflatten(Utils.Flatten(playerCamera.transform.forward));
+		rigidbody.MovePosition(transform.position + throttle * moveDirection * moveSpeed * Time.fixedDeltaTime);
 	}
 
 }
