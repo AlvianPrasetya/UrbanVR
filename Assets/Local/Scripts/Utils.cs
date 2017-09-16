@@ -32,6 +32,10 @@ public class Utils : MonoBehaviour {
 		public static readonly string INTERACTABLE = "Interactable";
 		public static readonly string OBSTACLE = "Obstacle";
 		public static readonly string VEHICLE = "Vehicle";
+
+		public class UI {
+			public static readonly string TIME_OF_DAY = "Time of Day";
+		}
 	}
 
 	public class Layer {

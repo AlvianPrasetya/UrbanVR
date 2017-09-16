@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using System.Collections.Generic;
 
 public class InteractController : MonoBehaviour {
@@ -26,7 +28,7 @@ public class InteractController : MonoBehaviour {
 	void Update() {
 		InputSpawn();
 		InputDestroy();
-
+		
 		InputSelect();
 		Drag();
 		InputDrop();
@@ -61,7 +63,9 @@ public class InteractController : MonoBehaviour {
 
 	private void InputSelect() {
 		if (Input.GetMouseButtonDown(Utils.Input.MOUSE_BUTTON_LEFT)) {
-			Select();
+			if (!SelectUI()) {
+				Select();
+			}
 		}
 	}
 
@@ -69,6 +73,28 @@ public class InteractController : MonoBehaviour {
 		if (Input.GetMouseButtonUp(Utils.Input.MOUSE_BUTTON_LEFT)) {
 			TryDrop();
 		}
+	}
+
+	private bool SelectUI() {
+		if (draggedInteractable != null) {
+			// Do not allow select while interacting with another interactable
+			return false;
+		}
+
+		PointerEventData ped = new PointerEventData(EventSystem.current);
+		ped.position = playerCamera.GetComponent<Camera>().WorldToScreenPoint(playerCamera.position + playerCamera.forward);
+		Logger.Log(ped.position.ToString());
+		List<RaycastResult> raycastResults = new List<RaycastResult>();
+		EventSystem.current.RaycastAll(ped, raycastResults);
+		if (raycastResults.Count > 0) {
+			GameObject uiObject = raycastResults[0].gameObject;
+			if (uiObject.tag.Equals(Utils.Tag.UI.TIME_OF_DAY)) {
+				// TODO: Link to DayNightManager and change the TimeMode
+			}
+			return true;
+		}
+
+		return false;
 	}
 
 	private void Select() {
