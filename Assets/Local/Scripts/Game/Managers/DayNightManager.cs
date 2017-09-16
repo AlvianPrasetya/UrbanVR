@@ -65,6 +65,22 @@ public class DayNightManager : MonoBehaviour {
 		}
 	}
 
+	public void ToggleTimeMode() {
+		switch (timeMode) {
+			case TimeMode.SECOND_TO_SECOND:
+				timeMode = TimeMode.SECOND_TO_MINUTE;
+				break;
+			case TimeMode.SECOND_TO_MINUTE:
+				timeMode = TimeMode.SECOND_TO_HOUR;
+				break;
+			case TimeMode.SECOND_TO_HOUR:
+				timeMode = TimeMode.SECOND_TO_SECOND;
+				break;
+			default:
+				break;
+		}
+	}
+
 	private void UpdateTimeOfDay() {
 		float simulatedTimeRatio;
 		switch (timeMode) {
@@ -114,19 +130,7 @@ public class DayNightManager : MonoBehaviour {
 
 	private void InputToggleTimeMode() {
 		if (Input.GetKeyDown(KeyCode.T)) {
-			switch (timeMode) {
-				case TimeMode.SECOND_TO_SECOND:
-					timeMode = TimeMode.SECOND_TO_MINUTE;
-					break;
-				case TimeMode.SECOND_TO_MINUTE:
-					timeMode = TimeMode.SECOND_TO_HOUR;
-					break;
-				case TimeMode.SECOND_TO_HOUR:
-					timeMode = TimeMode.SECOND_TO_SECOND;
-					break;
-				default:
-					break;
-			}
+			ToggleTimeMode();
 		}
 	}
 

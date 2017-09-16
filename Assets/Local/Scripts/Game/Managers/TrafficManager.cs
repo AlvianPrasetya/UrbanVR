@@ -21,14 +21,7 @@ public class TrafficManager : MonoBehaviour {
 		InputToggleSimulation();
 	}
 
-	private void InputToggleSimulation() {
-		if (Input.GetKeyDown(KeyCode.L)) {
-			AddVehicle();
-			//ToggleSimulation();
-		}
-	}
-
-	private void AddVehicle() {
+	public void AddVehicle() {
 		Random.InitState(System.DateTime.Now.Millisecond);
 		Waypoint sourceWaypoint = null;
 		Waypoint targetWaypoint = null;
@@ -52,6 +45,23 @@ public class TrafficManager : MonoBehaviour {
 		vehicle.nextWaypoint = targetWaypoint;
 
 		spawnedVehicles.Add(vehicle);
+	}
+
+	public void SubVehicle() {
+		if (spawnedVehicles.Count == 0) {
+			return;
+		}
+
+		int removedVehicleId = spawnedVehicles.Count - 1;
+		Destroy(spawnedVehicles[removedVehicleId].gameObject);
+		spawnedVehicles.RemoveAt(removedVehicleId);
+	}
+
+	private void InputToggleSimulation() {
+		if (Input.GetKeyDown(KeyCode.L)) {
+			AddVehicle();
+			//ToggleSimulation();
+		}
 	}
 
 	private void ToggleSimulation() {

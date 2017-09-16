@@ -86,15 +86,17 @@ public class InteractController : MonoBehaviour {
 		Logger.Log(ped.position.ToString());
 		List<RaycastResult> raycastResults = new List<RaycastResult>();
 		EventSystem.current.RaycastAll(ped, raycastResults);
-		if (raycastResults.Count > 0) {
-			GameObject uiObject = raycastResults[0].gameObject;
-			if (uiObject.tag.Equals(Utils.Tag.UI.TIME_OF_DAY)) {
-				// TODO: Link to DayNightManager and change the TimeMode
-			}
-			return true;
+
+		foreach (RaycastResult raycastResult in raycastResults) {
+			InteractableUI interactableUI = raycastResult.gameObject.GetComponent<InteractableUI>();
+			interactableUI.Interact();
 		}
 
-		return false;
+		if (raycastResults.Count == 0) {
+			return false;
+		}
+
+		return true;
 	}
 
 	private void Select() {
