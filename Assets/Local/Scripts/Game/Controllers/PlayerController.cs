@@ -10,7 +10,6 @@ public class PlayerController : Photon.MonoBehaviour {
 	private new Rigidbody rigidbody;
 
 	private OnPlayerSpawnedCallback playerSpawnedCallback;
-	private OnToggledViewModeCallback toggledViewModeCallback;
 
 	private CameraManager.ViewMode viewMode;
 
@@ -19,8 +18,6 @@ public class PlayerController : Photon.MonoBehaviour {
 
 		AddPlayerSpawnedCallback(GameManagerBase.Instance.cameraManager.OnPlayerSpawned);
 		AddPlayerSpawnedCallback(OnPlayerSpawned);
-
-		AddToggledViewModeCallback(GameManagerBase.Instance.cameraManager.OnToggledViewMode);
 
 		viewMode = CameraManager.ViewMode.FIRST_PERSON;
 	}
@@ -32,10 +29,6 @@ public class PlayerController : Photon.MonoBehaviour {
 
 		// Initialize assistant robot for player-following behaviour
 		assistantRobot.Initialize(transform);
-	}
-
-	private void Update() {
-		InputToggleView();
 	}
 
 	public string NickName {
@@ -52,14 +45,6 @@ public class PlayerController : Photon.MonoBehaviour {
 		}
 	}
 
-	public void AddToggledViewModeCallback(OnToggledViewModeCallback toggledViewModeCallback) {
-		if (this.toggledViewModeCallback == null) {
-			this.toggledViewModeCallback = toggledViewModeCallback;
-		} else {
-			this.toggledViewModeCallback += toggledViewModeCallback;
-		}
-	}
-
 	private void OnPlayerSpawned(GameObject playerEntity, bool isLocalInstance) {
 		if (isLocalInstance) {
 			// Enable physics on local instance
@@ -67,18 +52,6 @@ public class PlayerController : Photon.MonoBehaviour {
 		} else {
 			// Disable physics on remote instances
 			rigidbody.isKinematic = true;
-		}
-	}
-
-	private void InputToggleView() {
-		if (Input.GetKeyDown(KeyCode.V)) {
-			if (viewMode == CameraManager.ViewMode.FIRST_PERSON) {
-				viewMode = CameraManager.ViewMode.BIRDS_EYE;
-			} else {
-				viewMode = CameraManager.ViewMode.FIRST_PERSON;
-			}
-
-			toggledViewModeCallback(viewMode, photonView.isMine);
 		}
 	}
 

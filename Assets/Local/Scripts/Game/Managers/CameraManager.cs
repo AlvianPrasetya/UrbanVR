@@ -19,14 +19,26 @@ public class CameraManager : MonoBehaviour {
 	private Coroutine cameraLerpPositionCoroutine;
 	private Coroutine cameraSlerpRotationCoroutine;
 
+	private ViewMode viewMode;
+
 	void Awake() {
 		playerTransform = null;
 		cameraLerpPositionCoroutine = null;
 		cameraSlerpRotationCoroutine = null;
+
+		// Set initial view mode to birds eye to allow toggling to first person when Start() is called
+		viewMode = ViewMode.BIRDS_EYE;
 	}
 
 	void Start() {
 		sceneCamera.gameObject.SetActive(true);
+		
+		// Initialize first person view mode
+		ToggleViewMode();
+	}
+
+	void Update() {
+		InputToggleViewMode();
 	}
 
 	public Camera GetActiveCamera() {
@@ -34,6 +46,52 @@ public class CameraManager : MonoBehaviour {
 			return sceneCamera;
 		} else {
 			return playerCamera;
+		}
+	}
+
+	public void ToggleViewMode() {
+		if (viewMode == CameraManager.ViewMode.FIRST_PERSON) {
+			viewMode = CameraManager.ViewMode.BIRDS_EYE;
+
+			// Disable player camera on local instance
+			playerCamera.gameObject.SetActive(false);
+
+			// Enable scene camera on local instance
+			sceneCamera.gameObject.SetActive(true);
+
+			if (cameraLerpPositionCoroutine != null) {
+				StopCoroutine(cameraLerpPositionCoroutine);
+			}
+
+			if (cameraSlerpRotationCoroutine != null) {
+				StopCoroutine(cameraSlerpRotationCoroutine);
+			}
+
+			cameraLerpPositionCoroutine = StartCoroutine(Utils.TransformLerpPosition(sceneCamera.transform, playerCamera.transform.localPosition,
+				new Vector3(0.0f, 50.0f, 0.0f), 1.0f));
+			cameraSlerpRotationCoroutine = StartCoroutine(Utils.TransformSlerpRotation(sceneCamera.transform, playerCamera.transform.localRotation,
+				Quaternion.LookRotation(Vector3.down, Vector3.forward), 1.0f));
+		} else {
+			viewMode = CameraManager.ViewMode.FIRST_PERSON;
+
+			// Disable scene camera on local instance
+			sceneCamera.gameObject.SetActive(false);
+
+			// Enable player camera on local instance
+			playerCamera.gameObject.SetActive(true);
+
+			if (cameraLerpPositionCoroutine != null) {
+				StopCoroutine(cameraLerpPositionCoroutine);
+			}
+
+			if (cameraSlerpRotationCoroutine != null) {
+				StopCoroutine(cameraSlerpRotationCoroutine);
+			}
+
+			cameraLerpPositionCoroutine = StartCoroutine(Utils.TransformLerpPosition(playerCamera.transform, sceneCamera.transform.localPosition,
+				new Vector3(0.0f, 0.8f, 0.0f), 1.0f));
+			cameraSlerpRotationCoroutine = StartCoroutine(Utils.TransformSlerpRotation(playerCamera.transform, sceneCamera.transform.localRotation,
+				Quaternion.LookRotation(Vector3.forward, Vector3.up), 1.0f));
 		}
 	}
 
@@ -57,47 +115,13 @@ public class CameraManager : MonoBehaviour {
 		}
 	}
 
-	public void OnToggledViewMode(ViewMode viewMode, bool isLocalInstance) {
-		if (isLocalInstance) {
-			if (viewMode == ViewMode.FIRST_PERSON) {
-				// Disable scene camera on local instance
-				sceneCamera.gameObject.SetActive(false);
+	private void InputToggleViewMode() {
+		if (Input.GetKeyDown(KeyCode.V)) {
+			ToggleViewMode();
+		}
 
-				// Enable player camera on local instance
-				playerCamera.gameObject.SetActive(true);
-
-				if (cameraLerpPositionCoroutine != null) {
-					StopCoroutine(cameraLerpPositionCoroutine);
-				}
-
-				if (cameraSlerpRotationCoroutine != null) {
-					StopCoroutine(cameraSlerpRotationCoroutine);
-				}
-
-				cameraLerpPositionCoroutine = StartCoroutine(Utils.TransformLerpPosition(playerCamera.transform, sceneCamera.transform.localPosition,
-					new Vector3(0.0f, 0.8f, 0.0f), 1.0f));
-				cameraSlerpRotationCoroutine = StartCoroutine(Utils.TransformSlerpRotation(playerCamera.transform, sceneCamera.transform.localRotation,
-					Quaternion.LookRotation(Vector3.forward, Vector3.up), 1.0f));
-			} else {
-				// Disable player camera on local instance
-				playerCamera.gameObject.SetActive(false);
-
-				// Enable scene camera on local instance
-				sceneCamera.gameObject.SetActive(true);
-
-				if (cameraLerpPositionCoroutine != null) {
-					StopCoroutine(cameraLerpPositionCoroutine);
-				}
-
-				if (cameraSlerpRotationCoroutine != null) {
-					StopCoroutine(cameraSlerpRotationCoroutine);
-				}
-
-				cameraLerpPositionCoroutine = StartCoroutine(Utils.TransformLerpPosition(sceneCamera.transform, playerCamera.transform.localPosition,
-					new Vector3(0.0f, 50.0f, 0.0f), 1.0f));
-				cameraSlerpRotationCoroutine = StartCoroutine(Utils.TransformSlerpRotation(sceneCamera.transform, playerCamera.transform.localRotation,
-					Quaternion.LookRotation(Vector3.down, Vector3.forward), 1.0f));
-			}
+		if (viewMode == ViewMode.BIRDS_EYE && Input.GetMouseButtonDown(Utils.Input.MOUSE_BUTTON_LEFT)) {
+			ToggleViewMode();
 		}
 	}
 
